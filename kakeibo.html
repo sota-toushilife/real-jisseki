@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家計見直しパーフェクトシート</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  background: linear-gradient(160deg, #bae6fd 0%, #e0f2fe 60%, #f0f9ff 100%);
+  min-height: 100vh;
+  color: #1e293b;
+}
+.container { max-width: 680px; margin: 0 auto; padding: 20px 16px 80px; }
+h1 { text-align: center; font-size: 1.35rem; font-weight: 900; color: #0369a1; margin-bottom: 4px; }
+.subtitle { text-align: center; font-size: 0.8rem; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* モード選択 */
+.mode-select {
+  display: flex; gap: 12px; margin-bottom: 28px;
+}
+.mode-btn {
+  flex: 1; background: #fff; border: 2px solid #bae6fd;
+  border-radius: 14px; padding: 18px 12px; text-align: center;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.mode-btn:hover { border-color: #0ea5e9; }
+.mode-btn .icon { font-size: 1.8rem; margin-bottom: 6px; }
+.mode-btn .name { font-size: 0.95rem; font-weight: 800; color: #0369a1; margin-bottom: 4px; }
+.mode-btn .desc { font-size: 0.72rem; color: #64748b; line-height: 1.4; }
+
+/* 画面 */
+#screen-easy, #screen-hard, #screen-result { display: none; }
+
+/* セクションラベル */
+.section-label {
+  font-size: 0.75rem; font-weight: 800; color: #fff;
+  background: #ef4444; border-radius: 6px;
+  padding: 4px 12px; display: inline-block; margin: 20px 0 10px;
+}
+.section-label.yellow { background: #f59e0b; }
+
+/* 入力カード */
+.input-card {
+  background: #fff; border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.input-row { display: flex; align-items: center; gap: 10px; }
+.input-label { flex: 1; font-size: 0.88rem; font-weight: 700; color: #1e293b; }
+.input-hint { font-size: 0.68rem; color: #94a3b8; margin-top: 2px; }
+.input-wrap {
+  display: flex; align-items: center;
+  background: #f0f9ff; border-radius: 8px;
+  border: 1.5px solid #bae6fd; overflow: hidden;
+}
+.input-wrap input {
+  width: 100px; border: none; background: transparent;
+  padding: 8px 4px 8px 10px; font-size: 0.95rem;
+  font-weight: 700; color: #0369a1;
+  text-align: right; outline: none;
+}
+.input-wrap span { padding-right: 8px; font-size: 0.8rem; color: #64748b; }
+
+/* ボタン */
+.diagnose-btn {
+  display: block; width: 100%;
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  color: #fff; border: none; border-radius: 50px;
+  padding: 18px; font-size: 1.05rem; font-weight: 900;
+  cursor: pointer; margin-top: 24px;
+  box-shadow: 0 4px 16px rgba(14,165,233,0.4);
+}
+.back-btn {
+  background: #fff; border: 2px solid #0ea5e9; color: #0ea5e9;
+  border-radius: 50px; padding: 12px; font-size: 0.9rem;
+  font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px;
+}
+
+/* 結果ヒーロー */
+.result-hero {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  border-radius: 20px; padding: 24px 20px;
+  text-align: center; color: #fff; margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(14,165,233,0.3);
+}
+.result-hero .hero-label { font-size: 0.82rem; opacity: 0.85; margin-bottom: 6px; }
+.result-hero .hero-amount { font-size: 2.8rem; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.result-hero .hero-sub { font-size: 0.82rem; opacity: 0.85; }
+
+/* 投資シミュ */
+.invest-box {
+  background: #fff; border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.invest-title { font-size: 0.82rem; font-weight: 800; color: #0369a1; margin-bottom: 10px; }
+.invest-row {
+  display: flex; align-items: center;
+  background: #f0f9ff; border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 6px;
+}
+.invest-year { font-size: 0.75rem; font-weight: 700; color: #64748b; width: 44px; }
+.invest-bar-wrap { flex: 1; margin: 0 8px; }
+.invest-bar-track { background: #e0f2fe; border-radius: 3px; height: 9px; overflow: hidden; }
+.invest-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #0369a1); border-radius: 3px; transition: width 0.8s ease; }
+.invest-amount { font-size: 0.8rem; font-weight: 900; color: #0369a1; white-space: nowrap; }
+
+/* 結果カード */
+.result-card {
+  background: #fff; border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.result-card-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 10px;
+}
+.result-card-name { font-size: 0.9rem; font-weight: 800; color: #1e293b; }
+.diff-badge {
+  font-size: 0.72rem; font-weight: 800;
+  padding: 3px 10px; border-radius: 20px;
+}
+.diff-badge.over { background: #fee2e2; color: #dc2626; }
+.diff-badge.under { background: #dcfce7; color: #16a34a; }
+.diff-badge.same { background: #f1f5f9; color: #64748b; }
+
+.bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-lbl { font-size: 0.7rem; color: #64748b; width: 44px; flex-shrink: 0; }
+.bar-track { flex: 1; background: #f0f9ff; border-radius: 4px; height: 13px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; }
+.bar-fill.mine { background: #0ea5e9; }
+.bar-fill.avg { background: #cbd5e1; }
+.bar-fill.sota { background: #fbbf24; }
+.bar-val { font-size: 0.7rem; font-weight: 700; color: #1e293b; width: 60px; text-align: right; flex-shrink: 0; }
+
+.advice-box {
+  background: #f0f9ff; border-radius: 8px;
+  padding: 10px 12px; font-size: 0.79rem;
+  color: #334155; line-height: 1.65;
+}
+.sota-box {
+  background: #fef3c7; border-left: 3px solid #f59e0b;
+  border-radius: 0 8px 8px 0; padding: 10px 12px;
+  font-size: 0.79rem; color: #334155; line-height: 1.65;
+  margin-top: 6px;
+}
+
+/* メソッド */
+.method-box {
+  background: #fff; border-radius: 14px;
+  padding: 18px; margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.method-title { font-size: 0.95rem; font-weight: 800; color: #0369a1; margin-bottom: 12px; }
+.method-body { font-size: 0.82rem; color: #475569; line-height: 1.8; }
+
+/* LINE */
+.line-btn {
+  display: block; background: #06c755; color: #fff;
+  text-align: center; text-decoration: none;
+  font-weight: 800; font-size: 1rem; padding: 16px;
+  border-radius: 50px; margin-top: 20px;
+  box-shadow: 0 4px 14px rgba(6,199,85,0.4);
+}
+
+/* トップボタン */
+#top-btn {
+  position: fixed; bottom: 24px; right: 20px;
+  background: #0ea5e9; color: #fff; border: none;
+  border-radius: 50%; width: 46px; height: 46px;
+  font-size: 1.2rem; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(14,165,233,0.4);
+  display: none; z-index: 100;
+  align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+<div class="container" id="top">
+
+<!-- モード選択 -->
+<div id="screen-mode">
+  <h1>💰 家計見直しパーフェクトシート</h1>
+  <p class="subtitle">あなたの支出を平均と比較して<br>削れるお金を見える化しよう</p>
+  <div class="mode-select">
+    <div class="mode-btn" onclick="startMode('easy')">
+      <div class="icon">⚡</div>
+      <div class="name">簡単診断</div>
+      <div class="desc">固定費5項目だけ<br>約2分で完了</div>
+    </div>
+    <div class="mode-btn" onclick="startMode('hard')">
+      <div class="icon">🔍</div>
+      <div class="name">ガチ診断</div>
+      <div class="desc">全項目を徹底分析<br>約5分で完了</div>
+    </div>
+  </div>
+</div>
+
+<!-- 簡単診断 -->
+<div id="screen-easy">
+  <h1>⚡ 簡単診断</h1>
+  <p class="subtitle">固定費5項目を入力してください<br>わからない項目は空白でOK</p>
+  <div class="section-label red">🔴 固定費｜絶対見直し！</div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🏠 家賃<div class="input-hint">管理費込みの月額</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="e_rent" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">📱 スマホ・通信費<div class="input-hint">スマホ＋WiFi合計</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="e_phone" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">⚡ 電気・ガス・水道<div class="input-hint">光熱費の合計</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="e_utility" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">📺 サブスク費<div class="input-hint">月額＋年額の月割り合計</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="e_sub" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🔒 民間保険費<div class="input-hint">医療・生命保険など</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="e_insurance" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+
+  <button class="diagnose-btn" onclick="diagnose('easy')">🔍 診断する</button>
+  <button class="back-btn" onclick="goHome()">← 戻る</button>
+</div>
+
+<!-- ガチ診断 -->
+<div id="screen-hard">
+  <h1>🔍 ガチ診断</h1>
+  <p class="subtitle">全項目入力で徹底分析！<br>わからない項目は空白でOK</p>
+  <div class="section-label" style="background:#ef4444;">🔴 固定費｜絶対見直し！</div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🏠 家賃<div class="input-hint">管理費込みの月額</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_rent" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">📱 スマホ・通信費<div class="input-hint">スマホ＋WiFi合計</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_phone" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">⚡ 電気・ガス・水道<div class="input-hint">光熱費の合計</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_utility" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">📺 サブスク費<div class="input-hint">月額＋年額の月割り合計</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_sub" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🔒 民間保険費<div class="input-hint">医療・生命保険など</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_insurance" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+
+  <div class="section-label" style="background:#f59e0b;">🟡 変動費｜幸福度で振り分けよう</div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🍚 食費<div class="input-hint">外食・自炊すべて</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_food" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">☕ 嗜好品費<div class="input-hint">お菓子・コーヒー・お酒等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_taste" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">👥 交際費<div class="input-hint">飲み会・プレゼント等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_social" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">💇 美容費<div class="input-hint">美容院・スキンケア等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_beauty" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🛒 生活用品費<div class="input-hint">日用品・消耗品等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_daily" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">📚 勉強・自己投資費<div class="input-hint">書籍・スクール等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_study" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🎮 娯楽費<div class="input-hint">旅行・趣味・カメラ等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_hobby" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-label">🏥 医療費<div class="input-hint">病院・薬代等</div></div>
+      <div class="input-wrap"><input type="number" inputmode="numeric" id="h_medical" placeholder="0"><span>円</span></div>
+    </div>
+  </div>
+  <button class="diagnose-btn" onclick="diagnose('hard')">🔍 診断する</button>
+  <button class="back-btn" onclick="goHome()">← 戻る</button>
+</div>
+
+<!-- 結果 -->
+<div id="screen-result">
+  <h1>📊 診断結果</h1>
+
+  <div class="result-hero">
+    <div class="hero-label">年間で削れる可能性のある金額</div>
+    <div class="hero-amount" id="hero-amount">¥0</div>
+    <div class="hero-sub" id="hero-sub"></div>
+  </div>
+
+  <!-- 投資シミュ -->
+  <div id="invest-section" style="display:none;background:#f0f9ff;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.8rem;color:#0369a1;">
+    📈 <span id="invest-text"></span><span style="font-size:0.68rem;color:#94a3b8;margin-left:6px;">※年利4%複利・元本保証なし</span>
+  </div>
+
+  <div id="result-cards"></div>
+
+  <!-- 最強メソッド -->
+  <div class="method-box">
+    <div class="method-title">💡 家計見直し最強メソッド</div>
+    <div class="method-body">
+      <b>まず絶対やるべきは固定費の削減！！！</b><br>
+      めんどくさいのはわかる。でも一回変えちゃえば数年でとんでもない額が生まれるから、ここだけは本当に超大事。スマホ・保険・電気ガス、全部見直して。わからんことあったら遠慮なく聞いて。<br><br>
+      それが終わったら<b>「一度全部を最低限にする実験」</b>をやってみて。<br><br>
+      ① 全支出を一度「最低限」に落とす<br>
+      　→ 納豆をPBに変える、サブスク全解約、外食ゼロ…<br><br>
+      ② 1ヶ月後に分類する<br>
+      　😫「絶対無理！」　vs　😊「意外と悪くない」<br><br>
+      ③「絶対無理」なものだけ戻す<br><br>
+      ④ 戻さなかったもの＝削れる支出確定！<br><br>
+      何かあれば気軽に聞いてね👇
+    </div>
+  </div>
+
+  <a href="https://lin.ee/tXRnQHW" target="_blank" class="line-btn">👆 ここをタップで質問！</a>
+  <button class="back-btn" onclick="goHome()">← 最初に戻る</button>
+</div>
+
+</div>
+<button id="top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">▲</button>
+
+<script>
+const AVG = {
+  rent:55000, phone:8000, utility:12000, sub:5000, insurance:17000,
+  food:38000, taste:10000, social:15000, beauty:4000,
+  daily:8000, study:3000, hobby:10000, medical:3000
+};
+
+const SOTA = {
+  rent:44000, phone:3278, utility:6800, sub:6747, insurance:6700,
+  food:20000, taste:6000, social:27000, beauty:9700,
+  daily:12000, study:8600, hobby:9500, medical:2300
+};
+
+const ITEMS_EASY = [
+  { key:'rent', label:'🏠 家賃',
+    advice:'家賃は手取りの1/3以下が理想。築古・駅遠・1階・北向きで大幅に下がる。引越しのタイミングで複数社に交渉しよう。',
+    sota:null },
+  { key:'phone', label:'📱 スマホ・通信費',
+    advice:'楽天モバイル一択。3GBまで1,078円、無制限でも3,278円。キャリアのままだと年間5〜10万の差が出ることも。',
+    sota:'楽天モバイル無制限プランで月3,278円。WiFi付き物件なので通信費はこれだけ。' },
+  { key:'utility', label:'⚡ 電気・ガス・水道',
+    advice:'電気はオクトパスエナジー、都市ガスはエルピオ都市ガスが安い。単体契約の方が安いこともあるので比較してみて。',
+    sota:'電気2,500円＋ガス2,000円＋水道2,300円で計約6,800円。' },
+  { key:'sub', label:'📺 サブスク費',
+    advice:'全サブスクをリストアップして「先月使ったか？」を確認。使ってないのに払い続けてるものが必ず1〜2個ある。「いつか使うかも」は使わない。即解約。',
+    sota:'Claude・Spotify・アマプラ・Canva・CapCut・Duolingoで約6,747円/月。全部現役で使ってる。' },
+  { key:'insurance', label:'🔒 民間保険費',
+    advice:'社会保険（高額療養費制度）があるので民間医療保険は基本不要。入るなら車の任意保険（日新火災等のネット系が安い）と火災保険だけでOK。',
+    sota:'車の任意保険と火災保険だけ。民間医療保険は入っていない。' },
+];
+
+const ITEMS_HARD = [
+  ...ITEMS_EASY,
+  { key:'food', label:'🍚 食費',
+    advice:'まずプライベートブランド（PB）に切り替え。納豆・豆腐・パスタはPBで十分。外食を週1減らすだけで月5,000円変わる。食に幸福度が高い人は削らなくてOK。',
+    sota:'栄養が取れればOKなので食費は最小限。毎食同じでも全然平気。その分を交際費に回してる。' },
+  { key:'taste', label:'☕ 嗜好品費',
+    advice:'コンビニコーヒー・お菓子・お酒が積み重なりがち。「習慣で買ってるか、本当に欲しくて買ってるか」を区別するだけで変わる。',
+    sota:'お菓子とアイスが大好きすぎるのでここは削れない笑' },
+  { key:'social', label:'👥 交際費',
+    advice:'人間関係に使うお金は価値が大きい。ただし「いやいや行く飲み会」は削っていい。本当に会いたい人との時間にだけ使う。',
+    sota:'彼女や友達と遊んだり、喜ばせることには惜しまず使う。ここは絶対削りたくない。' },
+  { key:'beauty', label:'💇 美容費',
+    advice:'美容院は頻度・メニューを見直すだけで大きく変わる。スキンケアはブランドより成分で選ぶと安くなる。',
+    sota:'スキンケア・美容院・ホワイトニング・美容施術。美しくいたいので必要なものに絞って実施。' },
+  { key:'daily', label:'🛒 生活用品費',
+    advice:'シャンプー・洗剤・トイレットペーパーはPBで十分。大型家具家電はまずメルカリ等の中古から探すと大幅に節約できる。',
+    sota:'引越し時は家具家電をほぼ中古で揃えた。状態のいいものが安く手に入る。' },
+  { key:'study', label:'📚 勉強・自己投資費',
+    advice:'自己投資は積極的に。ただし「買っただけ・見ただけ」は意味がない。実践して初めて価値がある。',
+    sota:'総自己投資額は100万以上。表面的なものではなく、本質的で人生単位で使えるかどうかで判断してる。' },
+  { key:'hobby', label:'🎮 娯楽費',
+    advice:'娯楽は人生を豊かにする。削りすぎると消耗する。「なんとなく消費」と「本当にやりたいこと」を分けると整理しやすい。',
+    sota:'一人旅やカメラなど単発で大きな支出になることがある。毎月使うわけではない。' },
+  { key:'medical', label:'🏥 医療費',
+    advice:'予防（歯の定期検診・健康診断）にお金をかけると後の大きな出費を防げる。薬はジェネリックで十分。日頃から健康管理を。',
+    sota:'風邪をひきがちなので日頃から健康に気をつけることが節約になると実感してる。' },
+];
+
+function startMode(mode) {
+  document.getElementById('screen-mode').style.display = 'none';
+  document.getElementById('screen-' + mode).style.display = 'block';
+  window.scrollTo({top:0});
+}
+
+function goHome() {
+  ['screen-easy','screen-hard','screen-result'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('screen-mode').style.display = 'block';
+  window.scrollTo({top:0});
+}
+
+function getVal(id) {
+  const v = parseInt(document.getElementById(id).value);
+  return isNaN(v) ? null : v;
+}
+
+function fmt(n) {
+  return '¥' + Math.abs(n).toLocaleString();
+}
+
+function simulate(monthly, years) {
+  const r = 0.04 / 12;
+  const n = years * 12;
+  return Math.round(monthly * ((1 + r)**n - 1) / r);
+}
+
+function diagnose(mode) {
+  const prefix = mode === 'easy' ? 'e_' : 'h_';
+  const items = mode === 'easy' ? ITEMS_EASY : ITEMS_HARD;
+
+  const inputs = {};
+  items.forEach(item => {
+    inputs[item.key] = getVal(prefix + item.key);
+  });
+
+  let totalSaveable = 0;
+  let enteredCount = 0;
+  let cardsHTML = '';
+
+  items.forEach(item => {
+    const mine = inputs[item.key];
+    const av = AVG[item.key];
+    const sota = SOTA[item.key];
+    if (mine === null) return;
+    enteredCount++;
+
+    const diff = mine - av;
+    const saveable = diff > 0 ? diff : 0;
+    totalSaveable += saveable;
+
+    const maxVal = Math.max(mine, av, sota || 0, 1);
+    const mineW = Math.round(mine / maxVal * 100);
+    const avgW = Math.round(av / maxVal * 100);
+    const sotaW = sota ? Math.round(sota / maxVal * 100) : 0;
+
+    let badge = '';
+    if (diff > 3000) badge = `<span class="diff-badge over">平均より ${fmt(diff)} 多い</span>`;
+    else if (diff < -3000) badge = `<span class="diff-badge under">平均より ${fmt(-diff)} 少ない 👏</span>`;
+    else badge = `<span class="diff-badge same">平均と同程度</span>`;
+
+    const sotaBarHTML = sota ? `
+      <div class="bar-row">
+        <div class="bar-lbl" style="color:#d97706;">そうた</div>
+        <div class="bar-track"><div class="bar-fill sota" style="width:${sotaW}%;"></div></div>
+        <div class="bar-val" style="color:#d97706;">${fmt(sota)}</div>
+      </div>` : '';
+
+    cardsHTML += `
+    <div class="result-card">
+      <div class="result-card-header">
+        <div class="result-card-name">${item.label}</div>
+        ${badge}
+      </div>
+      <div class="bars">
+        <div class="bar-row">
+          <div class="bar-lbl" style="color:#0ea5e9;font-weight:700;">あなた</div>
+          <div class="bar-track"><div class="bar-fill mine" style="width:${mineW}%;"></div></div>
+          <div class="bar-val">${fmt(mine)}</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-lbl">平均</div>
+          <div class="bar-track"><div class="bar-fill avg" style="width:${avgW}%;"></div></div>
+          <div class="bar-val">${fmt(av)}</div>
+        </div>
+        ${sotaBarHTML}
+      </div>
+      <div class="advice-box">💡 ${item.advice}</div>
+      ${item.sota ? `<div class="sota-box">🗣️ そうた: ${item.sota}</div>` : ''}
+    </div>`;
+  });
+
+  if (enteredCount === 0) {
+    alert('少なくとも1項目入力してください');
+    return;
+  }
+
+  const yearSaveable = totalSaveable * 12;
+  document.getElementById('hero-amount').textContent = '年' + yearSaveable.toLocaleString() + '円';
+  document.getElementById('hero-sub').textContent =
+    totalSaveable > 0
+      ? `月${totalSaveable.toLocaleString()}円 × 12ヶ月 削れる可能性があります`
+      : '平均より少ない支出をキープできています 👏';
+
+  // 投資シミュ
+  if (totalSaveable > 0) {
+    const principal30 = totalSaveable * 12 * 30;
+    const total30 = simulate(totalSaveable, 30);
+    const gain30 = total30 - principal30;
+    document.getElementById('invest-text').innerHTML =
+      `毎月${totalSaveable.toLocaleString()}円を30年積み立てると、元本${Math.round(principal30/10000).toLocaleString()}万円が<b>${Math.round(total30/10000).toLocaleString()}万円</b>に（＋${Math.round(gain30/10000).toLocaleString()}万円）`;
+    document.getElementById('invest-section').style.display = 'block';
+  } else {
+    document.getElementById('invest-section').style.display = 'none';
+  }
+
+  document.getElementById('result-cards').innerHTML = cardsHTML;
+
+  document.getElementById('screen-' + mode).style.display = 'none';
+  document.getElementById('screen-result').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// トップボタン
+const topBtn = document.getElementById('top-btn');
+topBtn.style.display = 'flex';
+window.addEventListener('scroll', () => {
+  topBtn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+});
+
+// 最初はモード選択だけ表示
+document.getElementById('screen-mode').style.display = 'block';
+</script>
+</body>
+</html>
